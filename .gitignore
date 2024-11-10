@@ -1,1 +1,4 @@
 venv
+state_data.json
+reward_data.json
+runs

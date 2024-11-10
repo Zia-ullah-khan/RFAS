@@ -5,6 +5,9 @@ import torch.optim as optim
 import json
 import time
 from threading import Thread
+from torch.utils.tensorboard import SummaryWriter
+
+write = SummaryWriter("runs/TrainingMetrics")
 
 app = Flask(__name__)
 
@@ -87,6 +90,7 @@ def compute_gae(rewards, values, gamma, lambda_gae):
 
 def train_model():
     batch_states, batch_actions, batch_rewards, batch_values = [], [], [], []
+    global_step = 0
 
     while True:
         state_data = load_data(state_data_path)
@@ -133,6 +137,13 @@ def train_model():
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+
+                write.add_scalar("Loss/Policy", policy_loss.item(), global_step)
+                write.add_scalar("Loss/Value", value_loss.item(), global_step)
+                write.add_scalar("Loss/Total", loss.item(), global_step)
+                write.add_scalar("Rewards/Average", sum(batch_rewards)/len(batch_rewards))
+
+                global_step += 1
 
             batch_states, batch_actions, batch_rewards, batch_values = [], [], [], []
 
